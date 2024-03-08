@@ -41,9 +41,6 @@ Route::prefix("categories")->group(function () {
     Route::post("/upload", [CategoriesController::class, "handleUploadFile"]);
 });
 
-Route::get("/demo-response", function () {
-
-});
 
 Route::prefix("/masterlayout")->group(function () {
     Route::get("/", [MasterLayoutController::class, "mainWebsite"])->name("home");

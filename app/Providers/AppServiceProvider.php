@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\View\Components\Alert;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
 
@@ -41,5 +42,7 @@ class AppServiceProvider extends ServiceProvider
         //use for special if 
 
         Blade::component('package-alert', Alert::class);
+
+        Paginator::useBootstrap();
     }
 }

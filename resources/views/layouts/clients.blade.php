@@ -15,15 +15,29 @@
 
 <body>
     @include('client.blocks.header')
-    <main>
+    <main class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-3">
+                    <aside>
+                        @section('sidebar')
+                            @include('client.blocks.sidebar')
+                        @show
+                    </aside>
+                </div>
+                <div class="col-9">
+                    <div class="content">
+                        @yield('content')
+                    </div>
+                </div>
+            </div>
+        </div>
         {{-- <aside>
             @section('sidebar')
                 @include('client.blocks.sidebar')
             @show
         </aside> --}}
-        <div class="content mt-5">
-            @yield('content')
-        </div>
+
     </main>
     <script src="{{ asset('assets/clients/js/bootstrap.min.js') }}"></script>
     <script src="{{ asset('assets/clients/js/custom.js') }}"></script>

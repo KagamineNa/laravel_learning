@@ -11,38 +11,86 @@ class Users extends Model
     use HasFactory;
 
     protected $table = "user";
-    public function getAllUsers()
+    public function getAllUsers($filters = [], $keyword = null, $sortField = null, $sortType = null, $perpage = null)
     {
-        $users = DB::select("SELECT * FROM user ORDER BY create_at DESC");
+        // $users = DB::select("SELECT * FROM user ORDER BY create_at DESC");
+        $query = DB::table($this->table)
+            ->join('groups', 'user.groups_id', '=', 'groups.id')
+            ->select('user.*', 'groups.name as groups_name');
+
+        if (!empty($filters)) {
+            $query = $query->where($filters);
+        }
+        if (!empty($keyword)) {
+            $query = $query->where(function ($queri) use ($keyword) {
+                $queri->where('fullname', 'like', "%$keyword%")
+                    ->orWhere('email', 'like', "%$keyword%");
+            });
+        }
+        if (!empty($sortField) && !empty($sortType)) {
+            $query = $query->orderBy($sortField, $sortType);
+        } else {
+            $query = $query->orderBy('create_at', 'desc');
+        }
+
+        if (!empty($perpage)) {
+            $users = $query->paginate($perpage)->withQueryString();// withQueryString de giu lai query string khi chuyen trang
+        } else {
+            $users = $query->get();
+        }
+
         return $users;
     }
 
     public function addUser($data)
     {
-        DB::insert(
-            "INSERT INTO user (fullname, email, create_at) VALUES (?, ?, ?)",
-            $data
-        );
+        // DB::insert(
+        //     "INSERT INTO user (fullname, email, create_at) VALUES (?, ?, ?)",
+        //     $data
+        // );
+        DB::table($this->table)->insert([
+            'fullname' => $data[0],
+            'email' => $data[1],
+            'create_at' => date("Y-m-d H:i:s"),
+            'groups_id' => $data[2],
+            'status' => $data[3]
+        ]);
+
     }
 
     public function getUserDetail($id)
     {
-        $userDetail = DB::select("SELECT * FROM user WHERE id = ?", [$id]);
+        $userDetail = DB::table($this->table)
+            ->where('id', $id)
+            ->first();
+
+        // $userDetail = DB::select("SELECT * FROM user WHERE id = ?", [$id]);
         return $userDetail;
     }
 
     public function updateUser($data, $id)
     {
-        $data = array_merge($data, [$id]);
-        return DB::update(
-            "UPDATE user SET fullname = ?, email = ?, update_at = ? WHERE id = ?",
-            $data
-        );// nho dien dung thu tu
+        // $data = array_merge($data, [$id]);
+        // return DB::update(
+        //     "UPDATE user SET fullname = ?, email = ?, update_at = ? WHERE id = ?",
+        //     $data
+        // );// nho dien dung thu tu
+        return DB::table($this->table)
+            ->where('id', $id)
+            ->update([
+                'fullname' => $data[0],
+                'email' => $data[1],
+                'groups_id' => $data[2],
+                'status' => $data[3],
+                'update_at' => $data[4]
+            ]);
     }
 
     public function deleteUser($id)
     {
-        return DB::delete("DELETE FROM user WHERE id = ?", [$id]);
+        return DB::table($this->table)
+            ->where('id', $id)
+            ->delete();
     }
 
     public function learnQueryBuilder()
