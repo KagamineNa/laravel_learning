@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ProductsController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\MasterLayoutController;
+use App\Http\Controllers\PostController;
 use Illuminate\Http;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -57,6 +58,15 @@ Route::prefix("user")->group(function () {
     Route::get("/edit/{id}", [UserController::class, "editUser"])->name("user.edit");
     Route::post("/update", [UserController::class, "handleEditUser"])->name("user.update");
     Route::get("/delete/{id}", [UserController::class, "deleteUser"])->name("user.delete");
+});
+
+Route::get('/hoc-relations', [UserController::class, "relations"])->name('hoc-laravel');
+
+//Post routes
+Route::prefix("post")->group(function () {
+    Route::get("/", [PostController::class, "index"])->name("index");
+    Route::get("/add", [PostController::class, "add"])->name("add");
+    Route::get("/update/{id}", [PostController::class, "update"])->name("update");
 });
 
 //Admin Routes

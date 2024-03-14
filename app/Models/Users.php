@@ -11,8 +11,25 @@ class Users extends Model
     use HasFactory;
 
     protected $table = "user";
-    public function getAllUsers($filters = [], $keyword = null, $sortField = null, $sortType = null, $perpage = null)
+
+    public function phone()
     {
+        //one to one
+        return $this->hasOne(Phone::class, 'user_id', 'id')->withDefault(); // hasOne(related, foreignKey, localKey)
+        //withDefault() de lay ra gia tri mac dinh neu khong co du lieu
+    }
+    public function group()
+    {
+        //one to many
+        return $this->belongsTo(Group::class, 'groups_id', 'id');
+    }
+    public function getAllUsers(
+        $filters = [],
+        $keyword = null,
+        $sortField = null,
+        $sortType = null,
+        $perpage = null
+    ) {
         // $users = DB::select("SELECT * FROM user ORDER BY create_at DESC");
         $query = DB::table($this->table)
             ->join('groups', 'user.groups_id', '=', 'groups.id')

@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Group;
+use App\Models\Mechanic;
+use App\Models\Post;
 use DB;
 use Illuminate\Http\Request;
 use App\Models\Users;
+use App\Models\Phone;
+use App\Models\Category;
 
 class UserController extends Controller
 {
@@ -201,6 +206,101 @@ class UserController extends Controller
             "msg" => $msg,
             "type" => $type
         ]);
+    }
+
+    public function relations()
+    {
+        // One to One: 1 user co 1 phone
+        $userPhone = Users::find(11)->phone; //luu y: phone khong co () vi day la 1 thuoc tinh
+        $phone_num = $userPhone->phone_number;
+
+        $user = Phone::where('phone_number', '0376551338')->first()->user;
+        $userName = $user->fullname;
+
+
+        //One to Many: 1 group co the co nhieu user
+        $users = Group::find(2)->users;
+        if (!empty($users)) {
+            foreach ($users as $user) {
+                echo $user->fullname . "<br/>";
+            }
+        }
+        $group = Users::find(11)->group;
+        $groupName = $group->name;
+
+
+        //has One Through: 1 carOwner co 1 car, 1 car co 1 mechanic => truy van tu carOwner den mechanic
+        $carOwner = Mechanic::find(1)->owner;
+
+        //has Many Through: 1 group co nhieu user, 1 user co nhieu (hoac 1) phone => truy van tu group den phone
+
+
+        //Many to Many: 1 Post có thể viết về nhiều Categories, 1 Category có thể có nhiều bài Post viết về nó
+        //Khi xây dựng mqh này, cần phải có 1 table trung gian post_category
+        //Can phai co day du 3 column create_at, update_at, delete_at ???
+        $posts = Category::find(1)->posts;
+        foreach ($posts as $post) {
+            if (!empty($post->pivot->status)) {
+                echo $post->status . "<br/>";
+            }
+        }
+
+        //Lấy dữ liệu dựa vào ràng buộc liên kết
+        //VD: Lấy ra những bài viết có nhiều hơn 1 comment.
+        $posts = Post::has('comments', '>', 1)->get(); // comments: tên của phương thức trong model Post
+
+        //whereHas: Same same has, nhưng ta có thể custom điều kiện
+        $posts = Post::whereHas('comments', function ($query) {
+            $query->where('content', 'like', '%hay%');
+        })->get();
+
+        //orWhereHas
+
+        //doesntHave: Lấy ra những bài viết không có comment nào (Nguoc lai cua has)
+        $posts = Post::doesntHave('comments')->get();
+
+        //whereDoesntHave: Nguoc lai cua whereHas
+        $posts = Post::whereDoesntHave('comments', function ($query) {
+            $query->where('content', 'like', '%hay%');
+        })->get();
+
+        //withCount: Đếm số lượng bản ghi liên kết
+        $posts = Post::withCount('comments')->get();
+
+
+        //Eager Loading: Tăng tốc độ truy vấn khi có ràng buộc liên kết
+        //2 phương thức Lazy Loading và Eager Loading đều có ưu nhược điểm riêng.
+        //VD: Lấy ra những bài viết có nhiều hơn 1 comment
+
+        // DB::enableQueryLog();
+        $users = Users::all(); //TH1: Khong su dung eager loading
+        $users = Users::with('phone')->get(); //TH2: Su dung eager loading
+        foreach ($users as $user) {
+            if (!empty($user->phone)) {
+                echo $user->phone->phone_number . "<br/>";
+            }
+        }
+        // dd(DB::getQueryLog());
+
+        //Kết hợp Lazy Loading và Eager Loading
+        $users = Users::all();
+        $users = $users->load('phone');
+        foreach ($users as $user) {
+            if (!empty($user->phone)) {
+                echo $user->phone->phone_number . "<br/>";
+            }
+        }
+
+
+        //Update
+        //VD: update thêm 1 comment vào bài post có id = 1
+        $post = Post::find(1);
+        $post->comments()->create([
+            'content' => 'Bai viet id 1 dinh chop vu than'
+        ]);
+        // Nhớ phải khai báo fillable và timestamp trong model Comment
+
+
     }
 
 }
